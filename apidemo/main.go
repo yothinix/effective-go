@@ -1,7 +1,6 @@
 package main
 
 import (
-	"apidemo/auth"
 	"apidemo/todo"
 	"context"
 	"fmt"
@@ -58,30 +57,10 @@ func main() {
 	}
 	r.Use(cors.New(config))
 
-	r.GET("/healthz", func(c *gin.Context) {
-		c.Status(200)
-	})
-	r.GET("/limitz", limitedHandler)
-	r.GET("/x", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"buildcommit": buildcommit,
-			"buildtime":   buildtime,
-		})
-	})
+	gormStore := todo.NewGormStore(db)
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	r.GET("/tokenz", auth.AccessToken(os.Getenv("SIGN")))
-	protected := r.Group("", auth.Protect([]byte(os.Getenv("SIGN"))))
-
-	handler := todo.NewTodoHandler(db)
-	protected.POST("/todos", handler.NewTask)
-	protected.GET("/todos", handler.List)
-	protected.DELETE("/todos/:id", handler.Remove)
+	handler := todo.NewTodoHandler(gormStore)
+	r.POST("/todos", handler.NewTask)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
