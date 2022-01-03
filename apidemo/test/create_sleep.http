@@ -1,0 +1,15 @@
+:base_url = http://localhost:8081
+
+GET :base_url/tokenz
+-> run-hook (restclient-set-var ":newtoken" (cdr (assq 'token (json-read))))
+
+#
+
+POST :base_url/todos
+Authorization: Bearer :newtoken
+Content-Type: application/json
+TransactionID: x123
+
+{
+    "text": "sleep"
+}
