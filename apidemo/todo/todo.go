@@ -29,7 +29,14 @@ func NewTodoHandler(store storer) *TodoHandler {
 	return &TodoHandler{store: store}
 }
 
-func (t *TodoHandler) NewTask(c *gin.Context) {
+type Context interface {
+	Bind(interface{}) error
+	JSON(int, interface{}) error
+	TransactionID() string
+	Audience() string
+}
+
+func (t *TodoHandler) NewTask(c Context) {
 	var todo Todo
 	//if err := c.ShouldBindJSON(&todo); err != nil {
 	if err := c.Bind(&todo); err != nil {
