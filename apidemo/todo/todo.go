@@ -31,7 +31,7 @@ func NewTodoHandler(store storer) *TodoHandler {
 
 type Context interface {
 	Bind(interface{}) error
-	JSON(int, interface{}) error
+	JSON(int, interface{})
 	TransactionID() string
 	Audience() string
 }
