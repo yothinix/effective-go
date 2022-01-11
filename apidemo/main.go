@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apidemo/router"
 	"apidemo/store"
 	"apidemo/todo"
 	"context"
@@ -61,7 +62,7 @@ func main() {
 	gormStore := store.NewGormStore(db)
 
 	handler := todo.NewTodoHandler(gormStore)
-	r.POST("/todos", todo.NewGinHandler(handler.NewTask))
+	r.POST("/todos", router.NewGinHandler(handler.NewTask))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
