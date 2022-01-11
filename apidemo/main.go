@@ -15,6 +15,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -43,11 +45,19 @@ func main() {
 		panic("failed to connect database")
 	}
 
+	db.AutoMigrate(&todo.Todo{})
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://mongoadmin:secret@localhost:27017"))
+	if err != nil {
+		panic("failed to connect database")
+	}
+	collection := client.Database("myapp").Collection("todos")
+
 	r := router.NewMyRouter()
 
-	gormStore := store.NewGormStore(db)
+	//gormStore := store.NewGormStore(db)
+	mongoStore := store.NewMongoDBStore(collection)
 
-	handler := todo.NewTodoHandler(gormStore)
+	handler := todo.NewTodoHandler(mongoStore)
 	r.POST("/todos", handler.NewTask)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
