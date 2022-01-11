@@ -5,12 +5,9 @@ import (
 	"apidemo/store"
 	"apidemo/todo"
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -52,7 +49,7 @@ func main() {
 	}
 	collection := client.Database("myapp").Collection("todos")
 
-	r := router.NewMyRouter()
+	r := router.NewFiberRouter()
 
 	//gormStore := store.NewGormStore(db)
 	mongoStore := store.NewMongoDBStore(collection)
@@ -60,32 +57,8 @@ func main() {
 	handler := todo.NewTodoHandler(mongoStore)
 	r.POST("/todos", handler.NewTask)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-    s := &http.Server{
-		Addr:	":" + os.Getenv("PORT"),
-		Handler: r,
-		ReadTimeout: 10 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		MaxHeaderBytes: 1 << 20,
-	}
-
-	go func() {
-		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %\n", err)
-		}
-	}()
-
-	<-ctx.Done()
-	stop()
-	fmt.Println("shutting down gracefully, precc Ctrl+C again to force")
-
-	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := s.Shutdown(timeoutCtx); err != nil {
-		fmt.Println(err)
+	if err := r.Listen(":" + os.Getenv("PORT")); err != nil && err != http.ErrServerClosed {
+		log.Fatalf("listen: %\n", err)
 	}
 
 }
