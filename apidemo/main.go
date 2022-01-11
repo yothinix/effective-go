@@ -1,6 +1,7 @@
 package main
 
 import (
+	"apidemo/store"
 	"apidemo/todo"
 	"context"
 	"fmt"
@@ -57,7 +58,7 @@ func main() {
 	}
 	r.Use(cors.New(config))
 
-	gormStore := todo.NewGormStore(db)
+	gormStore := store.NewGormStore(db)
 
 	handler := todo.NewTodoHandler(gormStore)
 	r.POST("/todos", todo.NewGinHandler(handler.NewTask))
